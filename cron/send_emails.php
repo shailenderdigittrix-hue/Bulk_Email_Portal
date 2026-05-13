@@ -39,7 +39,10 @@ $recipients = $pdo->query("
 
 foreach ($recipients as $recipient) {
     try {
-        // ------------------------ avoid duplicate send ------------------------
+
+        // ------------------------
+        // LOCK (avoid duplicate send)
+        // ------------------------
         $lock = $pdo->prepare("
             UPDATE campaign_recipients
             SET status = 'processing'
@@ -51,18 +54,29 @@ foreach ($recipients as $recipient) {
         if ($lock->rowCount() == 0) {
             continue; // already processed by another cron run
         }
+
+        // ------------------------
+        // MAILER SETUP
+        // ------------------------
         $mail = new PHPMailer(true);
+
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'your_email@gmail.com';
-        $mail->Password   = 'your_password';
+
+        
+        $mail->Username   = 'shailender.digittrix@gmail.com';
+        $mail->Password   = 'mckb msrn brdn qgqn';
+
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
         $mail->Port       = 587;
-        $mail->setFrom('your_email@gmail.com', 'Bulk Email Portal', );
+
+        $mail->setFrom('shailender.digittrix@gmail.com', 'Bulk Email Portal', );
         $mail->addAddress($recipient['email'], $recipient['name']);
 
-        // --------------------- TEMPLATE REPLACEMENT ------------------------
+        // ------------------------
+        // TEMPLATE REPLACEMENT
+        // ------------------------
         $body = replaceTemplateVariables($recipient['body'], [
             'name'    => $recipient['name'],
             'company' => $recipient['company']
@@ -71,8 +85,15 @@ foreach ($recipients as $recipient) {
         $mail->isHTML(true);
         $mail->Subject = $recipient['subject'];
         $mail->Body    = $body;
+
+        // ------------------------
+        // SEND EMAIL
+        // ------------------------
         $mail->send();
-        // ----------- SUCCESS UPDATE ------------------------
+
+        // ------------------------
+        // SUCCESS UPDATE
+        // ------------------------
         $pdo->prepare("
             UPDATE campaign_recipients
             SET status='sent',
@@ -97,7 +118,10 @@ foreach ($recipients as $recipient) {
         echo "Sent: {$recipient['email']}\n";
 
     } catch (Exception $e) {
-        // -------------- FAILED + RETRY LOGIC ------------------------
+
+        // ------------------------
+        // FAILED + RETRY LOGIC
+        // ------------------------
         $pdo->prepare("
             UPDATE campaign_recipients
             SET retry_count = retry_count + 1,
@@ -131,7 +155,6 @@ $campaigns = $pdo->query("
 ")->fetchAll(PDO::FETCH_COLUMN);
 
 foreach ($campaigns as $campaignId) {
-
     $check = $pdo->prepare("
         SELECT COUNT(*) 
         FROM campaign_recipients

@@ -315,13 +315,13 @@ $templates = $templateQuery->fetchAll(PDO::FETCH_ASSOC);
 
                                 <!-- Delete Button -->
 
-                                <a href="delete_template.php?id=<?= $template['id'] ?>"
+                                <!-- <a href="delete_template.php?id=<?= $template['id'] ?>"
                                 class="btn btn-danger btn-sm"
                                 onclick="return confirm('Are you sure you want to delete this template?')">
 
                                     Delete
 
-                                </a>
+                                </a> -->
 
                             </td>
 
