@@ -9,15 +9,18 @@ RUN a2enmod rewrite
 # Copy project files
 COPY . /var/www/html/
 
+# Create uploads directory if missing
+RUN mkdir -p /var/www/html/uploads
+
 # Set permissions
 RUN chown -R www-data:www-data /var/www/html
 RUN chmod -R 755 /var/www/html
 RUN chmod -R 777 /var/www/html/uploads
 
-# Set working directory
+# Working directory
 WORKDIR /var/www/html
 
-# Expose Apache port
+# Expose port
 EXPOSE 80
 
 # Start Apache
